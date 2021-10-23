@@ -181,8 +181,6 @@ function inputDataProcessing(matrix, selectedMeasureArray, sortedArray) {
         for (let j = 0; j < columnCount; j++) {
             // Получаем индекс значения в сортированном массиве
             let index = sortedArray.sortIndices[j];
-            // console.log("index = " + index);
-            // console.log("selected index = " + selectedMeasureArray[index]);
             switch (selectedMeasureArray[index]) {
                 // 1 - "Критерий"
                 case 1:
