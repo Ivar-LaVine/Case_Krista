@@ -2,11 +2,15 @@
 
 // Произвольные исходные данные
 const firstMatrix = [
-    [100, 100, 100, 200, 200, 200, 200, 400, 400],
-    [43, 43, 44, 43, 22, 22, 11, 10, 23],
-    [123, 432, 223, 44, 11234, 24, 1123, 4557, 2104],
-    [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    [5, 5, 4, 4, 3, 3, 2, 5, 5]
+    [100, 43, 123, 1, 5],
+    [100, 43, 432, 2, 5],
+    [100, 44, 223, 3, 4],
+    [200, 43, 44, 4, 4],
+    [200, 22, 11234, 5, 3],
+    [200, 22, 24, 6, 3],
+    [200, 11, 1123, 7, 2],
+    [400, 10, 4557, 8, 5],
+    [400, 23, 2104, 9, 5]
 ]
 
 // Количество строк
@@ -21,39 +25,50 @@ const alphabets = "ABCDE";
 // Значение колонок выпадающего списка
 const options = ["-----", "Критерий", "Сумма", "Макс.", "Мин.", "Конкат"]; 
 
-
-// Конструктор для формирования таблицы с исходными данными с кнопками
-function constructor() {
-    createInputTable();
-    createMeasureButtons();
+// Функция создания основной секции с контентом
+function createMainSection() {
+    const section = document.createElement("section");
+    section.id = "main-section";
+    const pInput = document.createElement("p");
+    pInput.textContent = "Исходные данные";
+    section.append(pInput);
+    createInputTable(section);
+    createMeasureButtons(section);
+    createGroupButton(section);
+    const pOutput = document.createElement("p");
+    pOutput.textContent = "Результат";
+    const outputTable = document.createElement("div");
+    outputTable.id = "output-table";
+    section.append(pOutput, outputTable);
+    document.body.prepend(section);
 }
-
 // Создание таблицы с исходными данными
-function createInputTable() {
-    for (let i = 0; i < columnCount; i++) {
-        const column = document.createElement("div");
-        for (let j = 0; j < rowCount; j++) {
-            const row = document.createElement("div");
+function createInputTable(section) {
+    const inputTable = document.createElement("div");
+    inputTable.id = "input-table";
+    for (let i = 0; i < rowCount; i++) {
+        const row = document.createElement("div");
+        for (let j = 0; j < columnCount; j++) {
             const element = document.createElement("input");
-            if (j === 0) {
+            if (i === 0) {
                 // Устанавливаем заголовки таблиц по буквам из алфавита и запрещаем их редактировать (для верхней строки)
                 element.readOnly = true;
-                element.value = alphabets[i];
+                element.value = alphabets[j];
                 element.style.textAlign = "center";
             } else {
                 // Присваиваем ячейкам с данными произвольные значения
                 // И именуем класс как "number", чтобы впоследствии 
                 // Получить данные по имени класса
-                element.value = firstMatrix[i][j - 1];
+                element.value = firstMatrix[i - 1][j];
                 element.className = "number";
             }
             row.append(element);
-            column.append(row);
         }
         // Вкладываем таблицу в заранее подготовленный тэг в файле HTML
         // Для отображения на странице
-        document.getElementById("input-table").append(column);
+        inputTable.append(row);
     }
+    section.append(inputTable);
 }
 
 // Создание выпадающего списка и заполнение его значениями из переменной options
@@ -67,8 +82,27 @@ function createSelectList() {
     return select;
 }
 
+// Создание кнопки "Сгруппировать"
+function createGroupButton(section) {
+    
+    const buttonDiv = document.createElement("div");
+    buttonDiv.style.justifyContent = "right";
+    buttonDiv.id = "group-button";
+    const button = document.createElement("button");
+    button.textContent = "Сгруппировать";
+    button.style.width = "150px";
+    button.style.height = "40px";
+    // Привязка события на клик по кнопке
+    button.addEventListener("click", buttonClick);
+    buttonDiv.append(button);
+    section.append(buttonDiv);
+}
+
 // Отображение кнопок выпадающего списка вместе с кнопкой "Сгруппировать" 
-function createMeasureButtons() {
+function createMeasureButtons(section) {
+    const measureButtons = document.createElement("div");
+    measureButtons.style.justifyContent = "space-around";
+    measureButtons.id = "measure-buttons";
     // Количество селектов = количество столбцов исходной таблицы
     for (let i = 0; i < columnCount; i++) {
         const tableHeader = document.createElement("p");
@@ -80,16 +114,10 @@ function createMeasureButtons() {
         column.style.width = "140px";
         column.style.display = "flex";
         column.style.justifyContent = "space-around";
-        document.getElementById("measure-buttons").append(column);
+        measureButtons.append(column);
     }
-    // Создание кнопки "Сгруппировать"
-    const button = document.createElement("button");
-    button.textContent = "Сгруппировать";
-    button.style.width = "150px";
-    button.style.height = "40px";
-    // Привязка события на клик по кнопке
-    button.addEventListener("click", buttonClick);
-    document.getElementById("group-button").append(button);
+    
+    section.append(measureButtons);
 }
 
 // Получение массива выбранных пользователем значений во всех кнопках с выпадающим списком
@@ -125,14 +153,24 @@ function sortWithIndeces(toSort) {
 function getInputData() {
     const numbers = document.getElementsByClassName("number");
     const matrix = [];
-    for (let i = 0; i < columnCount; i++) {
+    for (let i = 0; i < rowCount - 1; i++) {
         const matrixColumn = [];
-        for (let j = 0; j < rowCount - 1; j++) {
-            matrixColumn.push(numbers[j + i * (rowCount - 1)].value);
+        for (let j = 0; j < columnCount; j++) {
+            matrixColumn.push(numbers[j + i * (columnCount)].value);
         }
         matrix.push(matrixColumn);
     }
     return matrix;
+}
+
+// Функция для проверки выбранных выпадающих списков, возвращает false если не выбрано не одного значения
+function checkSelectedMeasure(selectedMeasureArray) {
+    let cnt = 0;
+    selectedMeasureArray.forEach(item => {
+        if (item === 0) cnt++;
+    });
+    if (cnt === columnCount) return false;
+    return true;
 }
 
 // Клик по кнопке "Сгруппировать"
@@ -142,97 +180,90 @@ function buttonClick() {
     const matrix = getInputData();
     // Получение выбранных значений выпадающих списков
     let selectedMeasureArray = getSelectedMeasure();
+    // Проверка типов данных
+    checkMatrixValidation(matrix, selectedMeasureArray)
     // Сортировка по индексам выбранных значений выпадающих списков
     let sortedArray = sortWithIndeces(getSelectedMeasure());
     // Получение матрицы с результатами обработки
     let resultMatrix = inputDataProcessing(matrix, selectedMeasureArray, sortedArray);
     // Очистка HTML тега с результирующей таблицей
     clearOutputTable();
-    if (resultMatrix) {
-        // Если результат обработки положительный 
+    // Проверка выбранных значений
+    if (checkSelectedMeasure(selectedMeasureArray)) {
         // Создание "шапки" с буквами результирующей таблицы
         createHeaderOutputTable(selectedMeasureArray);
         // Создание результирующей таблицы
         createOutputTable(resultMatrix, selectedMeasureArray);
     } else {
-        // Если результат обработки отрицательный 
-        // Вывод пользователю сообщения
-        alert("Выберите значения для группировки данных");
+        alert("Выберите значение группировки");
     }
 }
 
 // Обработка данных
 function inputDataProcessing(matrix, selectedMeasureArray, sortedArray) {
-    // Инициализация необходимых переменных
-    let buf = []; // Переменная для хранения предыдущей строки матрицы
-    let temp = []; // Переменная для обработанных данных
-    let outputMatrix = []; // Переменная для записи результата строк
-    // Заполнение переменных первой(нулевой) строкой
-    for (let k = 0; k < columnCount; k++) { 
-        temp[k] = matrix[k][0];
-        buf[k] = matrix[k][0];
-    }
-    // Обработка матрицы 
-    // Начинается с 1 поскольку в переменной buf находится значение нулевой строки
-    for (let i = 1; i < rowCount - 1; i++) {
-        // Инициализация флага для работы с суммой, конкатенацией и записью 
-        // Обработанных даннных в результирующую матрицу
-        let flag = true;
-        for (let j = 0; j < columnCount; j++) {
-            // Получаем индекс значения в сортированном массиве
-            let index = sortedArray.sortIndices[j];
-            switch (selectedMeasureArray[index]) {
-                // 1 - "Критерий"
-                case 1:
-                    // В тот момент, когда текущее значение ячейки не равно 
-                    // Предыдущему по значению "Критерий", происходит
-                    // Запись обработанных данных в результирующую матрицу
-                    if (matrix[index][i] != buf[index] && flag) { 
-                        outputMatrix.push(temp.concat());
-                        flag = false;
-                        // Заполнение переменной для обработанных данных
-                        // Текущими данными (для корректной работы значений меры)
-                        for (let k = 0; k < columnCount; k++) temp[k] = matrix[k][i];
-                    } else temp[index] = matrix[index][i];
-                    break;
+    let result = []; // Переменная для записи результата строк
+    while (matrix.length > 0) {
+        // Строка - буфер с результатом вычислений
+        let buf = matrix[0];
+        // Флаг для критерия
+        let flag;
+        // Начинаем счет с 1, поскольку нулевая строка лежит в буфере
+        let i = 1;
+        while (i < matrix.length) {
+            // В начале обработки значения флага true
+            flag = true;
+            for (let j = 0; j < columnCount; j++) {
+                // Получаем индекс значения в сортированном массиве
+                let index = sortedArray.sortIndices[j];
+                switch (selectedMeasureArray[index]) {
+                    // 1 - "Критерий"
+                    case 1: if (matrix[i][index] != buf[index]) flag &= false; break;
+                    // 2 - "Сумма"
+                    case 2: if (flag) buf[index] += matrix[i][index]; break;
+                    // 3 - "Максимум"
+                    case 3: if (flag && matrix[i][index] > buf[index]) buf[index] = matrix[i][index]; break;
+                    // 4 - "Минимум"
+                    case 4: if (flag && matrix[i][index] < buf[index]) buf[index] = matrix[i][index]; break;
+                    // 5 - "Конкатенация"
+                    case 5: if (flag) buf[index] += matrix[i][index].toString(); break;
+                }
+            }
+            // Удаление строки, участвовавшей в группировке
+            if (flag) {
+                matrix.splice(i, 1);
+                i--;
+            }
+            i++;
+        }
+        // Удаление строки, которая лежала в буфере
+        matrix.splice(0, 1);
+        // В результирующий массив добавляем строку с результатом
+        result.push(buf);
+    }   
+
+    return result;
+}
+
+// Проверка типов данных
+function checkMatrixValidation(matrix, selectedMeasureArray) {
+    // Те элементы матрицы, в результате которые должны интерпретироваться как числа, 
+    // Проверяются на то являются ли они числами. И если это не так, становятся равны нулю
+    // Возможно я не прав и нужно преобразовывать строковые элементы в числа "a43" => 43; "abc431asdf324asdf1" => "4313241"; "a4a3a" => 43
+    for (let i = 0; i < matrix.length; i++) {
+        for (let j = 0; j < matrix[i].length; j++) {
+            switch (selectedMeasureArray[j]) {
                 // 2 - "Сумма"
-                case 2:
-                    if (flag) temp[index] = parseInt(temp[index]) + parseInt(matrix[index][i]);
-                    break;
                 // 3 - "Максимум"
-                case 3:
-                    if (parseInt(matrix[index][i]) > parseInt(temp[index])) temp[index] = matrix[index][i];
-                    break;
                 // 4 - "Минимум"
+                case 2:
+                case 3:
                 case 4:
-                    if (parseInt(matrix[index][i]) < parseInt(temp[index])) temp[index] = matrix[index][i];
-                    break;
-                // 5 - "Конкатенация"
-                case 5:
-                    if (flag) temp[index] += matrix[index][i].toString();
+                    if (isNaN(matrix[i][j])) matrix[i][j] = 0;
+                    else matrix[i][j] = Number(matrix[i][j]);
                     break;
             }
-            // Переприсваивание буферной переменной
-            buf[index] = matrix[index][i];
         }
     }
-    // Инициализация счетчика
-    let cnt = 0;
-    for (let i = 0; i < selectedMeasureArray.length; i++) {
-        // Подсчет выбранных значений, если они равны "-----" инкремент счетчика
-        if (selectedMeasureArray[i] === 0) cnt++;
-    }
-    // Если все значения выпадающих списков равны "-----"
-    // Таблицу выводить не нужно 
-    if (cnt != selectedMeasureArray.length) {
-        // Так как в переменной обработанных данных все еще хранится значение
-        // И его необходимо получить. Делаем заглушку
-        outputMatrix.push(temp.concat());
-        // Выводим положительный результат в виде матрицы
-        return outputMatrix;
-    }
-    // Следовательно вывод отрицательного результата
-    return false;
 }
 
 // Удаление результирующей таблицы
@@ -291,4 +322,4 @@ function createOutputTable(resultArray, selectedMeasureArray) {
 }
 
 // Вызов конструктора
-constructor();
+createMainSection();
