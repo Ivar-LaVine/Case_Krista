@@ -219,11 +219,32 @@ function inputDataProcessing(matrix, selectedMeasureArray, sortedArray) {
                     // 1 - "Критерий"
                     case 1: if (matrix[i][index] != buf[index]) flag &= false; break;
                     // 2 - "Сумма"
-                    case 2: if (flag) buf[index] += matrix[i][index]; break;
+                    case 2: 
+                        if (flag) {
+                            // Обнуление элементов если они не числа
+                            if (isNaN(buf[index])) buf[index] = 0;
+                            if (isNaN(matrix[i][index])) matrix[i][index] = 0; 
+                            buf[index] += matrix[i][index];
+                        } 
+                        break;
                     // 3 - "Максимум"
-                    case 3: if (flag && matrix[i][index] > buf[index]) buf[index] = matrix[i][index]; break;
+                    case 3: 
+                        if (flag) {
+                            // Проверка элементов на то, являются ли они числами
+                            if (!isNaN(matrix[i][index]) && isNaN(buf[index])) buf[index] = matrix[i][index];
+                            if (isNaN(matrix[i][index]) && isNaN(buf[index])) buf[index] = 0;
+                            if (!isNaN(matrix[i][index]) && !isNaN(buf[index]) && matrix[i][index] > buf[index]) buf[index] = matrix[i][index];
+                        }
+                        break;
                     // 4 - "Минимум"
-                    case 4: if (flag && matrix[i][index] < buf[index]) buf[index] = matrix[i][index]; break;
+                    case 4:
+                        if (flag) {
+                            // Проверка элементов на то, являются ли они числами
+                            if (!isNaN(matrix[i][index]) && isNaN(buf[index])) buf[index] = matrix[i][index];
+                            if (isNaN(matrix[i][index]) && isNaN(buf[index])) buf[index] = 0;
+                            if (!isNaN(matrix[i][index]) && !isNaN(buf[index]) && matrix[i][index] < buf[index]) buf[index] = matrix[i][index];
+                        }
+                        break;
                     // 5 - "Конкатенация"
                     case 5: if (flag) buf[index] += matrix[i][index].toString(); break;
                 }
@@ -244,11 +265,24 @@ function inputDataProcessing(matrix, selectedMeasureArray, sortedArray) {
     return result;
 }
 
+// Функция преобразования строки в число
+function strToNum(num) {
+    let result = "";
+    for (let i = 0; i < num.length; i++) 
+        if (!isNaN(Number(num[i])) || num[i] === "-" || num[i] === ".") 
+            result += num[i];
+
+    return Number(result);
+}
+
 // Проверка типов данных
 function checkMatrixValidation(matrix, selectedMeasureArray) {
     // Те элементы матрицы, в результате которые должны интерпретироваться как числа, 
     // Проверяются на то являются ли они числами. И если это не так, становятся равны нулю
     // Возможно я не прав и нужно преобразовывать строковые элементы в числа "a43" => 43; "abc431asdf324asdf1" => "4313241"; "a4a3a" => 43
+
+    // Преобразование всех элементов массива (по критериям меры) в число
+
     for (let i = 0; i < matrix.length; i++) {
         for (let j = 0; j < matrix[i].length; j++) {
             switch (selectedMeasureArray[j]) {
@@ -258,12 +292,11 @@ function checkMatrixValidation(matrix, selectedMeasureArray) {
                 case 2:
                 case 3:
                 case 4:
-                    if (isNaN(matrix[i][j])) matrix[i][j] = 0;
-                    else matrix[i][j] = Number(matrix[i][j]);
-                    break;
+                    matrix[i][j] = strToNum(matrix[i][j]); break;
             }
         }
     }
+    
 }
 
 // Удаление результирующей таблицы
